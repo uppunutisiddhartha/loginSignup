@@ -1,0 +1,416 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Tags and Title -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }}</title>
+    
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    <style>
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 20px;
+    flex-direction: column;
+}
+
+.book-details {
+    background-color: white;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin-bottom: 20px;
+    display: flex;
+}
+
+.image-section {
+    margin-right: 15px;
+}
+
+.book-image {
+    max-width: 100px;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.book-details h1 {
+    font-size: 1.3em;
+    margin: 0;
+}
+
+.book-details h2 {
+    font-size: 1em;
+    margin: 0;
+}
+
+.book-details p {
+    font-size: 0.9em;
+    margin: 5px 0;
+}
+
+.pdf-container {
+    display: flex; /* Arrange PDF and notes side by side */
+    gap: 20px;
+}
+
+.pdf-section {
+    flex: 2; /* PDF section takes up 2 parts of the flex container */
+    background-color: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    overflow: hidden;
+    height: 800px;
+}
+
+#pdf-viewer {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.pdf-scroll {
+    height: 100%;
+    overflow-y: auto;
+}
+
+.notepad {
+    flex: 1; /* Notepad takes up 1 part of the flex container */
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 15px;
+    height: 800px;
+    overflow: hidden;
+}
+
+.notepad textarea {
+    width: 100%; /* Fit within its parent */
+    height: 70%; /* Adjust height as needed */
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+.btn {
+    margin-top: 10px;
+    padding: 10px 15px;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.3s;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9em; /* Slightly larger font */
+}
+
+.btn-view-pdf {
+    background: linear-gradient(90deg, #007bff, #00c3ff);
+    padding-left: 10px;
+}
+
+.btn-add-to-cart {
+    background: linear-gradient(90deg, #28a745, #85e0a5);
+}
+
+/* Hover Effects */
+.btn-view-pdf:hover {
+    background: linear-gradient(90deg, #0056b3, #009bbf);
+    transform: scale(1.05);
+}
+
+.btn-add-to-cart:hover {
+    background: linear-gradient(90deg, #218838, #74d68e);
+    transform: scale(1.05);
+}
+
+/* Rating Styles */
+.rating .fas {
+    color: #ffc107;
+}
+
+.rating .far {
+    color: #e4e5e9;
+}
+</style>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" 
+        integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">
+            <img src='https://th.bing.com/th?id=OIP.CtBCsPNGxQk81Y0jYY61jgHaHa&w=250&h=250&c=8&rs=1&qlt=90&o=6&dpr=1.3&pid=3.1&rm=2' width="40" height="40" class="d-inline-block align-top" alt="">
+            E.Book Community
+        </a>
+    </nav>
+    
+    <div class="container">
+        <!-- Book Details Section -->
+        <div class="book-details">
+            <div class="image-section">
+                {% if book.image %}
+                    <img src="{{ book.image.url }}" alt="{{ book.title }} Image" class="book-image">
+                {% else %}
+                    <img src="{% static 'path/to/default/image.jpg' %}" alt="Default Image" class="book-image">
+                {% endif %}
+            </div>
+            <div class="info-section">
+                <h1>{{ book.title }}</h1>
+                <h2>Author: {{ book.author }}</h2>
+                <p><strong>Description:</strong> {{ book.description }}</p>
+                <p><strong>Category:</strong> {{ book.get_category_display }}</p>
+                <p><strong>Selected Item:</strong> {{ book.selected_item }}</p>
+                <p><strong>Rating:</strong>
+                    <span class="rating">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= book.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                </p>
+                <a href="#" class="btn btn-view-pdf" onclick="showPdf('{{ book.pdf.url }}'); return false;">
+                    <i class="fas fa-file-pdf"></i> View PDF
+                </a>
+                <button class="btn btn-add-to-cart" onclick="addToCart('{{ book.id }}')">
+                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- PDF and Notepad Section -->
+        <div class="pdf-container">
+            <!-- PDF Preview Section -->
+            <div class="pdf-section" id="pdf-section" style="display: none;">
+                <h3>PDF Preview:</h3>
+                <div class="pdf-scroll">
+                    <iframe id="pdf-viewer" src=""></iframe>
+                </div>
+            </div>
+            
+            <!-- Notepad Section -->
+            <div class="notepad">
+                <h3>Notes:</h3><div class="button-group mt-2">
+                    <button class="btn btn-success" onclick="saveNotes()">Save Notes</button>
+                    <button class="btn btn-primary" id="edit-note-btn" onclick="enableEditing()">Edit Note</button>
+                    <button class="btn btn-danger" id="clear-note-btn" onclick="clearNote()">Clear Note</button>
+                </div>
+                <textarea id="note-input" class="note-textarea" placeholder="Type your important notes here...">{{ existing_note }}</textarea>
+                
+                <p id="save-status" style="margin-top:10px; color: green;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Functions -->
+    <script>
+        function saveNotes() {
+    // Existing saveNotes code...
+
+    if (data.message) {
+        document.getElementById('save-status').innerText = data.message;
+        setTimeout(() => {
+            document.getElementById('save-status').innerText = '';
+            // Re-enable the Edit button
+            document.getElementById('edit-note-btn').disabled = false;
+            // Make the textarea read-only again
+            document.getElementById('note-input').readOnly = true;
+        }, 3000);
+    }
+    // Rest of the function...
+}
+
+function clearNote() {
+    // Existing clearNote code...
+
+    if (data.message) {
+        document.getElementById('note-input').value = '';
+        document.getElementById('save-status').innerText = data.message;
+        setTimeout(() => {
+            document.getElementById('save-status').innerText = '';
+            // Re-enable the Edit button
+            document.getElementById('edit-note-btn').disabled = false;
+            // Make the textarea read-only again
+            document.getElementById('note-input').readOnly = true;
+        }, 3000);
+    }
+    // Rest of the function...
+}
+
+        // Function to display PDF in iframe
+        function showPdf(pdfUrl) {
+            document.getElementById('pdf-viewer').src = pdfUrl;
+            document.getElementById('pdf-section').style.display = 'block';
+        }
+
+        // Function to retrieve CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Check if this cookie string begins with the name we want
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to add book to cart via AJAX
+        function addToCart(bookId) {
+            fetch(`/add-to-cart/${bookId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({}), // Additional data can be added here if needed
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Book added to cart!');
+                } else {
+                    alert('Failed to add book to cart.');
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                alert('An error occurred.');
+            });
+        }
+
+        // Function to save notes via AJAX
+        function saveNotes() {
+            const notes = document.getElementById('note-input').value;
+            const bookId = "{{ book.id }}";  // Ensure the book ID is available
+            const csrfToken = getCookie('csrftoken');
+
+            fetch(`/save-note/${bookId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({ text: notes }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    document.getElementById('save-status').innerText = data.message;
+                    setTimeout(() => {
+                        document.getElementById('save-status').innerText = '';
+                    }, 3000);
+                } else if (data.error) {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error saving note:', error);
+                alert('An error occurred while saving your note.');
+            });
+        }
+
+        // Debounce functionality to delay saveNotes invocation
+        let debounceTimer;
+        const debounceDelay = 2000; // 2 seconds
+
+        function debounceSaveNotes() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(saveNotes, debounceDelay);
+        }
+
+        // Attach the debounce function to the input event of the textarea
+        document.getElementById('note-input').addEventListener('input', debounceSaveNotes);
+
+        // Auto-save notes when textarea loses focus
+        document.getElementById('note-input').addEventListener('blur', saveNotes);
+
+        // Function to enable editing of the note
+        function enableEditing() {
+            const noteInput = document.getElementById('note-input');
+            noteInput.readOnly = false;
+            noteInput.focus();
+        }
+
+        // Function to clear the note via AJAX
+        function clearNote() {
+            if (!confirm('Are you sure you want to clear your note? This action cannot be undone.')) {
+                return;
+            }
+
+            const bookId = "{{ book.id }}";  // Ensure the book ID is available
+            const csrfToken = getCookie('csrftoken');
+
+            fetch(`/delete-note/${bookId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({}), // No additional data needed
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    document.getElementById('note-input').value = '';
+                    document.getElementById('save-status').innerText = data.message;
+                    setTimeout(() => {
+                        document.getElementById('save-status').innerText = '';
+                    }, 3000);
+                } else if (data.error) {
+                    alert(`Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing note:', error);
+                alert('An error occurred while clearing your note.');
+            });
+        }
+    </script>
+    
+    <!-- External JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" 
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" 
+        integrity="sha384-6nM2S49J6t0f9KHN3XwZ7+U7vW0i+Atx4TzFh6QFh3U6djFS1H3qVkc5mTqN8or" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js" 
+        integrity="sha384-B4gt1jrGC7Jh4AgAPO9c6pZq3Z4cxQ5E6r8jXt5nv8Rj/rSV9tAhm4uU6s4Z6+1e" crossorigin="anonymous">
+    </script>
+</body>
+</html>
